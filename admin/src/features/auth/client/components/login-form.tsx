@@ -18,13 +18,15 @@ import { Input } from "@/components/ui/input";
 
 import { type LoginFormData, loginSchema } from "../../shared/types";
 import { useLogin } from "../hooks/use-login";
-import { signInWithGoogle } from "../lib/auth-client";
+import { signInWithGoogle, signInWithUniQUE } from "../lib/auth-client";
 
 export function LoginForm() {
   const searchParams = useSearchParams();
   const { login, isLoading, error } = useLogin();
   const [isGoogleLoading, setIsGoogleLoading] = useState(false);
   const [googleError, setGoogleError] = useState<string | null>(null);
+  const [isUniqueLoading, setIsUniqueLoading] = useState(false);
+  const [uniqueError, setUniqueError] = useState<string | null>(null);
 
   const form = useForm<LoginFormData>({
     resolver: zodResolver(loginSchema),
@@ -53,7 +55,20 @@ export function LoginForm() {
     }
   };
 
-  const displayError = error || googleError;
+  const handleUniqueLogin = async () => {
+    try {
+      setGoogleError(null);
+      setIsGoogleLoading(true);
+      await signInWithUniQUE();
+    } catch (err) {
+      setUniqueError(
+        err instanceof Error ? err.message : "UniQUEログインに失敗しました。"
+      );
+      setIsUniqueLoading(false);
+    }
+  };
+
+  const displayError = error || googleError || uniqueError;
 
   return (
     <div className="space-y-6">
@@ -66,6 +81,16 @@ export function LoginForm() {
       >
         <GoogleIcon />
         {isGoogleLoading ? "リダイレクト中..." : "Googleでログイン"}
+      </Button>
+      <Button
+        type="button"
+        variant="outline"
+        className="w-full"
+        onClick={handleUniqueLogin}
+        disabled={isLoading || isUniqueLoading}
+      >
+        <UniqueIcon />
+        {isUniqueLoading ? "リダイレクト中..." : "UniQUEでログイン"}
       </Button>
 
       <div className="relative">
@@ -163,6 +188,48 @@ function GoogleIcon() {
         d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"
         fill="#EA4335"
       />
+    </svg>
+  );
+}
+
+function UniqueIcon() {
+  return (
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 135 153.69">
+      <title>UniQUE Icon</title>
+      <g>
+        <path
+          d="M68,83.85c-12.96,0-23.5-10.54-23.5-23.5s10.54-23.5,23.5-23.5,23.5,10.54,23.5,23.5-10.54,23.5-23.5,23.5ZM68,51.85c-4.69,0-8.5,3.81-8.5,8.5s3.81,8.5,8.5,8.5,8.5-3.81,8.5-8.5-3.81-8.5-8.5-8.5Z"
+          fill="#1f8ae1"
+        />
+        <rect
+          x="59.5"
+          y="76.85"
+          width="17"
+          height="46"
+          rx="4.3"
+          ry="4.3"
+          fill="#1f8ae1"
+        />
+        <rect
+          x="68.5"
+          y="94.85"
+          width="22"
+          height="14"
+          rx="4.3"
+          ry="4.3"
+          fill="#1f8ae1"
+        />
+      </g>
+      <g>
+        <path
+          d="M17.5,105.72l50,38.48,50-38.48,15.97,10.4c-.54.7-1.22,1.29-2.01,1.75l-60.42,34.88c-2.19,1.26-4.89,1.26-7.08,0L3.54,117.87c-.79-.46-1.47-1.05-2.01-1.75l15.97-10.4Z"
+          fill="#183359"
+        />
+        <path
+          d="M135,41.97v69.76c0,1.62-.55,3.16-1.53,4.39l-15.97-10.4v-57.74l-50-28.87-50,28.87v57.74l-15.97,10.4c-.98-1.23-1.53-2.77-1.53-4.39V41.97c0-2.53,1.35-4.87,3.54-6.14L63.96.95c2.19-1.26,4.89-1.26,7.08,0l60.42,34.88c2.19,1.27,3.54,3.61,3.54,6.14Z"
+          fill="#1f8ae1"
+        />
+      </g>
     </svg>
   );
 }

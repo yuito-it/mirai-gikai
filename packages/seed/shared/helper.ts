@@ -32,5 +32,16 @@ export async function clearAllData(supabase: AdminClient) {
     await supabase.from(table).delete().gte("created_at", "1900-01-01");
   }
 
+  const { data: allProviders } =
+    await supabase.auth.admin.customProviders.listProviders();
+  allProviders.providers.forEach(async (provider) => {
+    const { error } = await supabase.auth.admin.customProviders.deleteProvider(
+      provider.identifier,
+    );
+    if (error != null) {
+      throw error;
+    }
+  });
+
   console.log("✅ Cleared existing data");
 }

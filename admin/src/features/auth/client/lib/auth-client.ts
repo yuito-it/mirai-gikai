@@ -38,6 +38,19 @@ export async function signInWithGoogle() {
   }
 }
 
+export async function signInWithUniQUE() {
+  const { error } = await authClient.signInWithOAuth({
+    provider: "custom:unique",
+    options: {
+      redirectTo: `${window.location.origin}/api/auth/callback`,
+    },
+  });
+
+  if (error) {
+    throw new Error("UniQUEログインに失敗しました。");
+  }
+}
+
 export async function signOut() {
   const { error } = await authClient.signOut();
   if (error) {

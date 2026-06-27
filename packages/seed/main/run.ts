@@ -35,11 +35,34 @@ import {
 import { createAdminClient, clearAllData } from "../shared/helper";
 
 async function seedDatabase() {
+  // UniQUEの認証情報の確認
+  requireEnv("SUPABASE_AUTH_CUSTOM_UNIQUE_CLIENT_ID");
+  requireEnv("SUPABASE_AUTH_CUSTOM_UNIQUE_CLIENT_SECRET");
+
   const supabase = createAdminClient();
   console.log("🌱 Starting database seeding...");
 
   try {
     await clearAllData(supabase);
+
+    // Add UniQUE OIDC Provider
+    console.log("🔐 Inserting custom auth provider...");
+    const { error: uniqueProviderError } =
+      await supabase.auth.admin.customProviders.createProvider({
+        provider_type: "oidc",
+        identifier: "custom:unique",
+        name: "UniQUE",
+        client_id: process.env.SUPABASE_AUTH_CUSTOM_UNIQUE_CLIENT_ID!,
+        client_secret: process.env.SUPABASE_AUTH_CUSTOM_UNIQUE_CLIENT_SECRET!,
+        issuer: "https://auth.uniproject.jp",
+        scopes: ["openid", "profile", "email"],
+      });
+
+    if (uniqueProviderError) {
+      throw new Error(
+        `Failed to add custom auth provider: ${uniqueProviderError.message}`,
+      );
+    }
 
     // Insert tags
     console.log("🏷️  Inserting tags...");
@@ -65,7 +88,7 @@ async function seedDatabase() {
 
     if (dietSessionsError) {
       throw new Error(
-        `Failed to insert diet sessions: ${dietSessionsError.message}`
+        `Failed to insert diet sessions: ${dietSessionsError.message}`,
       );
     }
 
@@ -122,12 +145,11 @@ async function seedDatabase() {
       string,
       { knowledge_source: string; use_knowledge_source_in_chat: boolean }
     > = {
-      "ガソリン税暫定税率廃止法案": {
-        knowledge_source:
-          "この法案についてあなたの意見を聞かせてください。",
+      ガソリン税暫定税率廃止法案: {
+        knowledge_source: "この法案についてあなたの意見を聞かせてください。",
         use_knowledge_source_in_chat: true,
       },
-      "船荷証券の電子化に関する法律案": {
+      船荷証券の電子化に関する法律案: {
         knowledge_source:
           "船荷証券（B/L）の電子化に関する法律案について、あなたの意見を聞かせてください。",
         use_knowledge_source_in_chat: true,
@@ -142,7 +164,7 @@ async function seedDatabase() {
         .eq("id", bill.id);
       if (ksError) {
         throw new Error(
-          `Failed to update knowledge_source for bill ${bill.name} (${bill.id}): ${ksError.message}`
+          `Failed to update knowledge_source for bill ${bill.name} (${bill.id}): ${ksError.message}`,
         );
       }
     }
@@ -158,7 +180,7 @@ async function seedDatabase() {
 
     if (contentsError) {
       throw new Error(
-        `Failed to insert bill contents: ${contentsError.message}`
+        `Failed to insert bill contents: ${contentsError.message}`,
       );
     }
 
@@ -179,7 +201,7 @@ async function seedDatabase() {
 
     if (stancesError) {
       throw new Error(
-        `Failed to insert mirai stances: ${stancesError.message}`
+        `Failed to insert mirai stances: ${stancesError.message}`,
       );
     }
 
@@ -200,7 +222,7 @@ async function seedDatabase() {
 
     if (billsTagsError) {
       throw new Error(
-        `Failed to insert bills-tags relations: ${billsTagsError.message}`
+        `Failed to insert bills-tags relations: ${billsTagsError.message}`,
       );
     }
 
@@ -227,7 +249,7 @@ async function seedDatabase() {
 
       if (configError) {
         throw new Error(
-          `Failed to insert interview config: ${configError.message}`
+          `Failed to insert interview config: ${configError.message}`,
         );
       }
 
@@ -246,13 +268,15 @@ async function seedDatabase() {
 
         if (questionsError) {
           throw new Error(
-            `Failed to insert interview questions: ${questionsError.message}`
+            `Failed to insert interview questions: ${questionsError.message}`,
           );
         }
 
         if (insertedQuestions) {
           insertedQuestionsCount = insertedQuestions.length;
-          console.log(`✅ Inserted ${insertedQuestionsCount} interview questions`);
+          console.log(
+            `✅ Inserted ${insertedQuestionsCount} interview questions`,
+          );
         }
 
         // Insert interview sessions
@@ -266,13 +290,15 @@ async function seedDatabase() {
 
         if (sessionsError) {
           throw new Error(
-            `Failed to insert interview sessions: ${sessionsError.message}`
+            `Failed to insert interview sessions: ${sessionsError.message}`,
           );
         }
 
         if (insertedSessions && insertedSessions.length > 0) {
           insertedSessionsCount = insertedSessions.length;
-          console.log(`✅ Inserted ${insertedSessionsCount} interview sessions`);
+          console.log(
+            `✅ Inserted ${insertedSessionsCount} interview sessions`,
+          );
 
           // Insert interview messages
           console.log("💬 Inserting interview messages...");
@@ -287,13 +313,15 @@ async function seedDatabase() {
 
           if (messagesError) {
             throw new Error(
-              `Failed to insert interview messages: ${messagesError.message}`
+              `Failed to insert interview messages: ${messagesError.message}`,
             );
           }
 
           if (insertedMessages) {
             insertedMessagesCount = insertedMessages.length;
-            console.log(`✅ Inserted ${insertedMessagesCount} interview messages`);
+            console.log(
+              `✅ Inserted ${insertedMessagesCount} interview messages`,
+            );
           }
 
           // Insert interview reports
@@ -307,13 +335,15 @@ async function seedDatabase() {
 
           if (reportsError) {
             throw new Error(
-              `Failed to insert interview reports: ${reportsError.message}`
+              `Failed to insert interview reports: ${reportsError.message}`,
             );
           }
 
           if (insertedReports) {
             insertedReportsCount = insertedReports.length;
-            console.log(`✅ Inserted ${insertedReportsCount} interview reports`);
+            console.log(
+              `✅ Inserted ${insertedReportsCount} interview reports`,
+            );
           }
 
           // Insert demo session, messages, and report with fixed IDs
@@ -326,7 +356,7 @@ async function seedDatabase() {
 
           if (demoSessionError) {
             throw new Error(
-              `Failed to insert demo session: ${demoSessionError.message}`
+              `Failed to insert demo session: ${demoSessionError.message}`,
             );
           }
 
@@ -337,7 +367,7 @@ async function seedDatabase() {
 
           if (demoMessagesError) {
             throw new Error(
-              `Failed to insert demo messages: ${demoMessagesError.message}`
+              `Failed to insert demo messages: ${demoMessagesError.message}`,
             );
           }
 
@@ -348,7 +378,7 @@ async function seedDatabase() {
 
           if (demoReportError) {
             throw new Error(
-              `Failed to insert demo report: ${demoReportError.message}`
+              `Failed to insert demo report: ${demoReportError.message}`,
             );
           }
 
@@ -356,16 +386,20 @@ async function seedDatabase() {
           console.log(`   Demo report URL: /report/${DEMO_REPORT_ID}#chat-log`);
 
           // Insert additional demo sessions, messages, and reports (for 4 role types)
-          console.log("🎭 Inserting additional demo data for all role types...");
+          console.log(
+            "🎭 Inserting additional demo data for all role types...",
+          );
 
-          const additionalDemoSessions = createAdditionalDemoSessions(insertedConfig.id);
+          const additionalDemoSessions = createAdditionalDemoSessions(
+            insertedConfig.id,
+          );
           const { error: additionalSessionsError } = await supabase
             .from("interview_sessions")
             .insert(additionalDemoSessions);
 
           if (additionalSessionsError) {
             throw new Error(
-              `Failed to insert additional demo sessions: ${additionalSessionsError.message}`
+              `Failed to insert additional demo sessions: ${additionalSessionsError.message}`,
             );
           }
 
@@ -376,7 +410,7 @@ async function seedDatabase() {
 
           if (additionalMessagesError) {
             throw new Error(
-              `Failed to insert additional demo messages: ${additionalMessagesError.message}`
+              `Failed to insert additional demo messages: ${additionalMessagesError.message}`,
             );
           }
 
@@ -387,20 +421,20 @@ async function seedDatabase() {
 
           if (additionalReportsError) {
             throw new Error(
-              `Failed to insert additional demo reports: ${additionalReportsError.message}`
+              `Failed to insert additional demo reports: ${additionalReportsError.message}`,
             );
           }
 
           console.log(`✅ Inserted additional demo data for all 4 role types`);
           console.log(`   subject_expert: /report/${DEMO_REPORT_ID}#chat-log`);
           console.log(
-            `   work_related: /report/${DEMO_REPORT_ID_WORK}#chat-log`
+            `   work_related: /report/${DEMO_REPORT_ID_WORK}#chat-log`,
           );
           console.log(
-            `   daily_life_affected: /report/${DEMO_REPORT_ID_DAILY}#chat-log`
+            `   daily_life_affected: /report/${DEMO_REPORT_ID_DAILY}#chat-log`,
           );
           console.log(
-            `   general_citizen: /report/${DEMO_REPORT_ID_CITIZEN}#chat-log`
+            `   general_citizen: /report/${DEMO_REPORT_ID_CITIZEN}#chat-log`,
           );
         }
       }
@@ -424,27 +458,27 @@ async function seedDatabase() {
 
       if (shippingConfigError) {
         throw new Error(
-          `Failed to insert shipping bill config: ${shippingConfigError.message}`
+          `Failed to insert shipping bill config: ${shippingConfigError.message}`,
         );
       }
 
       if (insertedShippingConfig) {
         // Questions
         const shippingQuestions = createShippingBillQuestions(
-          insertedShippingConfig.id
+          insertedShippingConfig.id,
         );
         const { error: sqError } = await supabase
           .from("interview_questions")
           .insert(shippingQuestions);
         if (sqError) {
           throw new Error(
-            `Failed to insert shipping questions: ${sqError.message}`
+            `Failed to insert shipping questions: ${sqError.message}`,
           );
         }
 
         // Sessions (100件)
         const shippingSessions = createShippingBillSessions(
-          insertedShippingConfig.id
+          insertedShippingConfig.id,
         );
         const { data: insertedShippingSessions, error: ssError } =
           await supabase
@@ -453,15 +487,13 @@ async function seedDatabase() {
             .select("id");
         if (ssError) {
           throw new Error(
-            `Failed to insert shipping sessions: ${ssError.message}`
+            `Failed to insert shipping sessions: ${ssError.message}`,
           );
         }
 
         if (insertedShippingSessions) {
           shippingSessionsCount = insertedShippingSessions.length;
-          const shippingSessionIds = insertedShippingSessions.map(
-            (s) => s.id
-          );
+          const shippingSessionIds = insertedShippingSessions.map((s) => s.id);
 
           // Messages
           const shippingMessages =
@@ -471,7 +503,7 @@ async function seedDatabase() {
             .insert(shippingMessages);
           if (smError) {
             throw new Error(
-              `Failed to insert shipping messages: ${smError.message}`
+              `Failed to insert shipping messages: ${smError.message}`,
             );
           }
 
@@ -489,7 +521,7 @@ async function seedDatabase() {
             .order("id", { ascending: true });
           if (umError) {
             throw new Error(
-              `Failed to fetch user messages: ${umError.message}`
+              `Failed to fetch user messages: ${umError.message}`,
             );
           }
 
@@ -507,9 +539,7 @@ async function seedDatabase() {
           // Reports (100件、各3 opinions) — source_message_id を含む
           const shippingReports = createShippingBillReports(shippingSessionIds);
           for (const report of shippingReports) {
-            const msgs = sessionMessageMap.get(
-              report.interview_session_id
-            );
+            const msgs = sessionMessageMap.get(report.interview_session_id);
             if (msgs && Array.isArray(report.opinions)) {
               const opinions = (
                 report.opinions as Array<{
@@ -536,7 +566,7 @@ async function seedDatabase() {
               .select("id");
           if (srError) {
             throw new Error(
-              `Failed to insert shipping reports: ${srError.message}`
+              `Failed to insert shipping reports: ${srError.message}`,
             );
           }
 
@@ -548,7 +578,7 @@ async function seedDatabase() {
         // --- リアル系インタビュー（back-and-forth が自然な 1 セッション） ---
         console.log("🎤 Inserting realistic shipping bill interview...");
         const realisticSession = createRealisticShippingBillSession(
-          insertedShippingConfig.id
+          insertedShippingConfig.id,
         );
         const { data: insertedRealisticSession, error: realisticSessionError } =
           await supabase
@@ -558,23 +588,25 @@ async function seedDatabase() {
             .single();
         if (realisticSessionError || !insertedRealisticSession) {
           throw new Error(
-            `Failed to insert realistic session: ${realisticSessionError?.message}`
+            `Failed to insert realistic session: ${realisticSessionError?.message}`,
           );
         }
 
         const realisticMessages = createRealisticShippingBillMessages(
-          insertedRealisticSession.id
+          insertedRealisticSession.id,
         );
         // 1 回の bulk insert だと全行が同一 created_at になり、return 順も UUID 依存で不定
         // → id + content を返してもらい、後で content で対象を特定する
-        const { data: insertedRealisticMessages, error: realisticMessagesError } =
-          await supabase
-            .from("interview_messages")
-            .insert(realisticMessages)
-            .select("id, content");
+        const {
+          data: insertedRealisticMessages,
+          error: realisticMessagesError,
+        } = await supabase
+          .from("interview_messages")
+          .insert(realisticMessages)
+          .select("id, content");
         if (realisticMessagesError || !insertedRealisticMessages) {
           throw new Error(
-            `Failed to insert realistic messages: ${realisticMessagesError?.message}`
+            `Failed to insert realistic messages: ${realisticMessagesError?.message}`,
           );
         }
 
@@ -584,12 +616,12 @@ async function seedDatabase() {
         // 未解決は seed データ不整合なので fail fast させる（silent に進むと
         // interview_report.opinions.source_message_id が欠落した状態で投入される）。
         const realisticReport = createRealisticShippingBillReport(
-          insertedRealisticSession.id
+          insertedRealisticSession.id,
         );
         const links = getRealisticShippingBillSourceMessageLinks();
         if (!Array.isArray(realisticReport.opinions)) {
           throw new Error(
-            "Realistic report opinions must be an array to wire source_message_id"
+            "Realistic report opinions must be an array to wire source_message_id",
           );
         }
         const opinions = realisticReport.opinions as Array<{
@@ -599,25 +631,25 @@ async function seedDatabase() {
           source_message_content?: string;
         }>;
         const contentToId = new Map(
-          insertedRealisticMessages.map((m) => [m.content, m.id])
+          insertedRealisticMessages.map((m) => [m.content, m.id]),
         );
         for (const { conversationIndex, opinionIndex } of links) {
           const msgContent = realisticMessages[conversationIndex]?.content;
           if (!msgContent) {
             throw new Error(
-              `Realistic seed: conversationIndex ${conversationIndex} out of range`
+              `Realistic seed: conversationIndex ${conversationIndex} out of range`,
             );
           }
           const msgId = contentToId.get(msgContent);
           if (!msgId) {
             throw new Error(
-              `Realistic seed: failed to resolve inserted message for conversationIndex=${conversationIndex}`
+              `Realistic seed: failed to resolve inserted message for conversationIndex=${conversationIndex}`,
             );
           }
           const opinion = opinions[opinionIndex];
           if (!opinion) {
             throw new Error(
-              `Realistic seed: opinionIndex ${opinionIndex} out of range`
+              `Realistic seed: opinionIndex ${opinionIndex} out of range`,
             );
           }
           opinion.source_message_id = msgId;
@@ -628,22 +660,23 @@ async function seedDatabase() {
           .insert(realisticReport);
         if (realisticReportError) {
           throw new Error(
-            `Failed to insert realistic report: ${realisticReportError.message}`
+            `Failed to insert realistic report: ${realisticReportError.message}`,
           );
         }
 
         console.log(
-          `✅ Shipping bill: ${shippingSessionsCount} sessions (+1 realistic), ${shippingReportsCount} reports (each with 3 opinions) + 1 realistic report`
+          `✅ Shipping bill: ${shippingSessionsCount} sessions (+1 realistic), ${shippingReportsCount} reports (each with 3 opinions) + 1 realistic report`,
         );
       } else {
         console.log(
-          `✅ Shipping bill: ${shippingSessionsCount} sessions, ${shippingReportsCount} reports (each with 3 opinions)`
+          `✅ Shipping bill: ${shippingSessionsCount} sessions, ${shippingReportsCount} reports (each with 3 opinions)`,
         );
       }
     }
 
     console.log("🎉 Database seeding completed successfully!");
     console.log("\n📊 Summary:");
+    console.log(`  Custom Auth Providers: 1`);
     console.log(`  Diet Sessions: ${insertedDietSessions.length}`);
     console.log(`  Tags: ${insertedTags.length}`);
     console.log(`  Bills: ${insertedBills.length}`);
@@ -658,6 +691,12 @@ async function seedDatabase() {
   } catch (error) {
     console.error("❌ Error seeding database:", error);
     process.exit(1);
+  }
+}
+
+function requireEnv(name: string): void {
+  if (!process.env[name]) {
+    throw new Error(`Missing required environment variable: ${name}`);
   }
 }
 
