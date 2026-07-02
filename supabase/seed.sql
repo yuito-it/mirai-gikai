@@ -68,3 +68,8 @@ WHERE email = 'admin@example.com';
 UPDATE auth.users
 SET raw_app_meta_data = raw_app_meta_data || '{"roles": ["admin"]}'::jsonb
 WHERE email = 'admin@example.com';
+
+-- Grant privileges to service_role
+GRANT USAGE ON SCHEMA public TO service_role;
+GRANT ALL PRIVILEGES ON ALL TABLES IN SCHEMA public TO service_role;
+GRANT ALL PRIVILEGES ON ALL SEQUENCES IN SCHEMA public TO service_role;
